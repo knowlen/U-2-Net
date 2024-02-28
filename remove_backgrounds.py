@@ -25,18 +25,28 @@ def save_output_nobg(image_name, pred, d_dir):
     predict = pred.squeeze()
     predict_np = predict.cpu().data.numpy()
 
+    # Load the original image
     original_img = Image.open(image_name).convert('RGB')
-    original_img = original_img.resize((predict_np.shape[1], predict_np.shape[0]), resample=Image.BILINEAR)
+    original_size = original_img.size
 
-    # convert prediction to an image
-    im = Image.fromarray((predict_np * 255).astype(np.uint8))
+    # Resize prediction to match the original image size
+    predict_img = Image.fromarray((predict_np * 255).astype(np.uint8))
+    predict_img_resized = predict_img.resize(original_size, resample=Image.BILINEAR)
 
-    mask = im.convert('L')
-    empty = Image.new("RGBA", original_img.size)
+    # Convert resized prediction to a mask
+    mask = predict_img_resized.convert('L')
+
+    # Create an empty image with transparency (RGBA) the size of the original image
+    empty = Image.new("RGBA", original_size)
+
+    # Paste the original image using the resized mask as a transparency mask
     empty.paste(original_img, (0, 0), mask=mask)
 
+    # Save the result
     img_name = os.path.splitext(os.path.basename(image_name))[0]
     empty.save(os.path.join(d_dir, f'{img_name}_nobg.png'))
+
+
 
 def batch_prediction(image_dir, prediction_dir, model, batch_size=4):
     if not os.path.exists(prediction_dir):
@@ -65,7 +75,7 @@ def batch_prediction(image_dir, prediction_dir, model, batch_size=4):
 
         for i in range(batch_size):
             if i_test * batch_size + i < len(img_name_list):
-                save_output_nobg(img_name_list[i_test * batch_size + i], pred[i], prediction_dir)
+                save_output_nobg2(img_name_list[i_test * batch_size + i], pred[i], prediction_dir)
 
 def load_model(model_name='u2net'):
     model_dir = os.path.join(os.getcwd(), 'saved_models', model_name, model_name + '.pth')
