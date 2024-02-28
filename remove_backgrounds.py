@@ -75,7 +75,7 @@ def batch_prediction(image_dir, prediction_dir, model, batch_size=4):
 
         for i in range(batch_size):
             if i_test * batch_size + i < len(img_name_list):
-                save_output_nobg2(img_name_list[i_test * batch_size + i], pred[i], prediction_dir)
+                save_output_nobg(img_name_list[i_test * batch_size + i], pred[i], prediction_dir)
 
 def load_model(model_name='u2net'):
     model_dir = os.path.join(os.getcwd(), 'saved_models', model_name, model_name + '.pth')
